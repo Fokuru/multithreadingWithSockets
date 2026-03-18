@@ -2,7 +2,7 @@ package com.example;
 
 import java.net.*;
 import java.io.*;
-import java.util.Date;
+import java.util.*;
 
 /**
  * This program is a server that takes connection requests on
@@ -18,12 +18,12 @@ import java.util.Date;
 public class ChatServerWithThreads {
 
     public static final int LISTENING_PORT = 9876;
+    private List<ConnectionHandler> connections = Collections.synchronizedList(new ArrayList<>());
 
-    public static void main(String[] args) {
-
+    public ChatServerWithThreads() {
         ServerSocket listener;  // Listens for incoming connections.
         Socket connection;      // For communication with the connecting program.
-
+        
         /* Accept and process connections forever, or until some error occurs. */
 
         try {
@@ -31,6 +31,11 @@ public class ChatServerWithThreads {
             System.out.println("Listening on port " + LISTENING_PORT);
             while (true) {
                   // Accept next connection request and handle it.
+                connection = listener.accept();
+                System.out.println("Connection received from " + connection.getInetAddress());
+                ConnectionHandler handler = new ConnectionHandler(connection);
+                connections.add(handler);
+                handler.start();
             }
         }
         catch (Exception e) {
@@ -39,6 +44,12 @@ public class ChatServerWithThreads {
             return;
         }
 
+    }
+
+    public static void main(String[] args) {
+        new ChatServerWithThreads();
+        
+
     }  // end main()
 
 
@@ -46,21 +57,51 @@ public class ChatServerWithThreads {
      *  Defines a thread that handles the connection with one
      *  client.
      */
-    private static class ConnectionHandler extends Thread {
+    private class ConnectionHandler extends Thread {
         Socket client;
+        ObjectOutputStream oos;
+        ObjectInputStream ois;
+
         ConnectionHandler(Socket socket) {
             client = socket;
         }
+        
         public void run() {
             String clientAddress = client.getInetAddress().toString();
-            while(true) {
-	            try {
-	            	//your code to send messages goes here.
-	            }
-	            catch (Exception e){
-	                System.out.println("Error on connection with: " 
-	                        + clientAddress + ": " + e);
-	            }
+            try {
+                oos = new ObjectOutputStream(client.getOutputStream());
+                ois = new ObjectInputStream(client.getInputStream());
+                
+                while (true) {
+                    String message = (String) ois.readObject();
+                    System.out.println("Message Received from " + clientAddress + ": " + message);
+                    
+                    // Broadcast the message to all other clients
+                    synchronized (connections) {
+                        for (ConnectionHandler handler : connections) {
+                            if (handler != this) {
+                                try {
+                                    handler.oos.writeObject(clientAddress + ": " + message);
+                                } catch (IOException e) {
+                                    System.out.println("Error sending to client: " + e);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception e) {
+                System.out.println("Error on connection with: " + clientAddress + ": " + e);
+            } finally {
+                // Remove this handler from the list when connection closes
+                synchronized (connections) {
+                    connections.remove(this);
+                }
+                try {
+                    client.close();
+                } catch (IOException e) {
+                    // Ignore
+                }
             }
         }
     }

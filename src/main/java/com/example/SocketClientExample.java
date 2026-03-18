@@ -5,6 +5,7 @@ import java.io.ObjectOutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.Scanner;
 
 
 public class SocketClientExample {
@@ -26,22 +27,48 @@ public class SocketClientExample {
         Socket socket = null;
         ObjectOutputStream oos = null;
         ObjectInputStream ois = null;
-        for(int i=0; i<5;i++){
-            //establish socket connection to server
-            socket = new Socket(host.getHostName(), 9876);
-            //write to socket using ObjectOutputStream
-            oos = new ObjectOutputStream(socket.getOutputStream());
-            System.out.println("Sending request to Socket Server");
-            if(i==4)oos.writeObject("exit");
-            else oos.writeObject(""+i);
+        socket = new Socket("localhost", 9876);
+        oos = new ObjectOutputStream(socket.getOutputStream());
+        System.out.println("Sending request to Socket Server");
+        boolean running = true;
+        Scanner sc = new Scanner(System.in);
+        while (running) {
+            if (ois != null) {
+                ois = new ObjectInputStream(socket.getInputStream());
+                String message = (String) ois.readObject();
+                System.out.println("Message: " + message);
+            }
+            try{
+                System.out.println("Enter a message to send to the server (type 'exit' to quit):");
+                
+                    String message = sc.nextLine();
+                    if (message.equalsIgnoreCase("exit")) {
+                        oos.writeObject("exit");
+                        if (ois != null) ois.close();
+                        if (oos != null) oos.close();
+                        if (socket != null) socket.close();
+                        sc.close();
+                        running = false;
+                        System.out.println("Exiting client...");
+                    } else {
+                        oos.writeObject(message);
+                        oos.flush();
+                    }
+                
+            } catch (IOException e) {
+                System.out.println("Error sending message to server: " + e);
+            }
+        
             //read the server response message
-            ois = new ObjectInputStream(socket.getInputStream());
-            String message = (String) ois.readObject();
-            System.out.println("Message: " + message);
-            //close resources
-            ois.close();
-            oos.close();
+            //if (running){
+            
             Thread.sleep(100);
-        }
+                
+        //}
     }
+    
+        
+    }
+    // Use flush to send the message immediately without waiting for the buffer to fill up
+    // oos.flush();
 }
