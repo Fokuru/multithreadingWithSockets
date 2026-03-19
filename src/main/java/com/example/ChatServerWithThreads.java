@@ -82,6 +82,9 @@ public class ChatServerWithThreads {
                             if (handler != this) {
                                 try {
                                     handler.oos.writeObject(clientAddress + ": " + message);
+                                    System.out.println("Hehe");
+                                    handler.oos.flush();
+                                    
                                 } catch (IOException e) {
                                     System.out.println("Error sending to client: " + e);
                                 }

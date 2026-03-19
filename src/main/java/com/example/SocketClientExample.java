@@ -1,4 +1,6 @@
 package com.example;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -6,6 +8,10 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.Scanner;
+
+import javax.swing.JFrame;
+import javax.swing.JTextField;
+
 
 
 public class SocketClientExample {
@@ -24,40 +30,58 @@ public class SocketClientExample {
     public static void main(String[] args) throws UnknownHostException, IOException, ClassNotFoundException, InterruptedException{
         //get the localhost IP address, if server is running on some other IP, you need to use that
         InetAddress host = InetAddress.getLocalHost();
-        Socket socket = null;
-        ObjectOutputStream oos = null;
-        ObjectInputStream ois = null;
-        socket = new Socket("localhost", 9876);
-        oos = new ObjectOutputStream(socket.getOutputStream());
+        final Socket socket = new Socket("localhost", 9876);
+        final ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+        final ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+        
+        
+      
         System.out.println("Sending request to Socket Server");
         boolean running = true;
-        Scanner sc = new Scanner(System.in);
-        while (running) {
-            if (ois != null) {
-                ois = new ObjectInputStream(socket.getInputStream());
-                String message = (String) ois.readObject();
-                System.out.println("Message: " + message);
-            }
-            try{
+
+        JFrame gui= new JFrame();
+        gui.setSize(500, 500);
+        //gui.setBackground(new Color(200,200,150));
+        JTextField input = new JTextField("",40);
+        input.addActionListener(new ActionListener(){
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+
+                System.out.println("tried to send message "+input.getText());
+                try{
                 System.out.println("Enter a message to send to the server (type 'exit' to quit):");
-                
-                    String message = sc.nextLine();
+
+                    String message = input.getText();
                     if (message.equalsIgnoreCase("exit")) {
                         oos.writeObject("exit");
                         if (ois != null) ois.close();
                         if (oos != null) oos.close();
                         if (socket != null) socket.close();
-                        sc.close();
-                        running = false;
                         System.out.println("Exiting client...");
                     } else {
                         oos.writeObject(message);
                         oos.flush();
-                    }
-                
-            } catch (IOException e) {
-                System.out.println("Error sending message to server: " + e);
+                        input.setText("");
+                        }
+                    
+                } catch (IOException k) {
+                    System.out.println("Error sending message to server: " + k);
+                }
+            }});
+        gui.add(input);
+        gui.setVisible(true);
+
+
+
+
+        while (running) {
+            if (ois != null) {
+                System.out.println("Lol");
+                String message = (String) ois.readObject();
+                System.out.println("Someone said: " + message);
             }
+            
         
             //read the server response message
             //if (running){
