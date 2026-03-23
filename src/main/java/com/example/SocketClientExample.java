@@ -1,4 +1,5 @@
 package com.example;
+import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
@@ -7,7 +8,6 @@ import java.io.ObjectOutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.util.Scanner;
 
 import javax.swing.JFrame;
 import javax.swing.JTextField;
@@ -30,7 +30,7 @@ public class SocketClientExample {
     public static void main(String[] args) throws UnknownHostException, IOException, ClassNotFoundException, InterruptedException{
         //get the localhost IP address, if server is running on some other IP, you need to use that
         InetAddress host = InetAddress.getLocalHost();
-        final Socket socket = new Socket("localhost", 9876);
+        final Socket socket = new Socket(host, 9876);
         final ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
         final ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
         
@@ -42,8 +42,15 @@ public class SocketClientExample {
         JFrame gui= new JFrame();
         gui.setSize(500, 500);
         //gui.setBackground(new Color(200,200,150));
+        JTextField topText = new JTextField("Type your messages bellow:",40);
         JTextField input = new JTextField("",40);
-        input.addActionListener(new ActionListener(){
+        JTextField bottomText = new JTextField("Recieved message displayed bellow:",40);
+        JTextField output = new JTextField("",40);
+        topText.setBackground(new Color(215, 220, 250));
+        bottomText.setBackground(new Color(215, 220, 250));
+        input.setBackground(new Color(250, 235, 215));
+        output.setBackground(new Color(215, 250, 220));
+        new Thread (() -> {input.addActionListener(new ActionListener(){
 
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -68,31 +75,57 @@ public class SocketClientExample {
                 } catch (IOException k) {
                     System.out.println("Error sending message to server: " + k);
                 }
+            
             }});
+        });
+        topText.setEditable(false);
+        bottomText.setEditable(false);
+        output.setEditable(false);
+        gui.add(topText);
         gui.add(input);
+        gui.add(bottomText);
+        gui.add(output);
         gui.setVisible(true);
 
 
 
 
-        while (running) {
+        new Thread (() -> {while (running) {
             if (ois != null) {
                 System.out.println("Lol");
-                String message = (String) ois.readObject();
+                String message = "";
+                try {
+                    message = (String) ois.readObject();
+                    output.setText(message);
+                } catch (ClassNotFoundException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
                 System.out.println("Someone said: " + message);
             }
             
         
             //read the server response message
             //if (running){
-            
-            Thread.sleep(100);
+            /*
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+                 */
                 
         //}
+        
     }
     
         
-    }
+    });
+}
     // Use flush to send the message immediately without waiting for the buffer to fill up
     // oos.flush();
 }
