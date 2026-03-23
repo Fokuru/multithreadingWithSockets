@@ -7,6 +7,17 @@ import java.lang.ClassNotFoundException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+/*
+
+
+
+        DON'T USE! NOT FOR USE! THIS WILL BREAK THINGS! DON'T USE!
+
+
+
+*/
+
+
 /**
  * This class implements java Socket server
  * @author pankaj

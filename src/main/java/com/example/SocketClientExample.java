@@ -1,5 +1,7 @@
 package com.example;
 import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
@@ -42,14 +44,21 @@ public class SocketClientExample {
         JFrame gui= new JFrame();
         gui.setSize(500, 500);
         //gui.setBackground(new Color(200,200,150));
-        JTextField topText = new JTextField("Type your messages bellow:",40);
-        JTextField input = new JTextField("",40);
-        JTextField bottomText = new JTextField("Recieved message displayed bellow:",40);
-        JTextField output = new JTextField("",40);
+        JTextField topText = new JTextField("Type your messages bellow (type 'exit' to quit):", 40);
+        JTextField input = new JTextField("", 40);
+        JTextField bottomText = new JTextField("Recieved message displayed bellow:", 40);
+        JTextField output = new JTextField("", 40);
+        topText.setPreferredSize(new Dimension(500, 50));
+        input.setPreferredSize(new Dimension(500, 150));
+        bottomText.setPreferredSize(new Dimension(500, 50));
+        output.setPreferredSize(new Dimension(500, 150));
         topText.setBackground(new Color(215, 220, 250));
         bottomText.setBackground(new Color(215, 220, 250));
         input.setBackground(new Color(250, 235, 215));
         output.setBackground(new Color(215, 250, 220));
+        gui.setLayout(new FlowLayout());	
+
+
         new Thread (() -> {input.addActionListener(new ActionListener(){
 
             @Override
@@ -57,7 +66,7 @@ public class SocketClientExample {
 
                 System.out.println("tried to send message "+input.getText());
                 try{
-                System.out.println("Enter a message to send to the server (type 'exit' to quit):");
+                //System.out.println("Enter a message to send to the server (type 'exit' to quit):");
 
                     String message = input.getText();
                     if (message.equalsIgnoreCase("exit")) {
@@ -65,6 +74,8 @@ public class SocketClientExample {
                         if (ois != null) ois.close();
                         if (oos != null) oos.close();
                         if (socket != null) socket.close();
+                        gui.setVisible(false);
+                        gui.dispose();
                         System.out.println("Exiting client...");
                     } else {
                         oos.writeObject(message);
@@ -77,7 +88,7 @@ public class SocketClientExample {
                 }
             
             }});
-        });
+        }).start();
         topText.setEditable(false);
         bottomText.setEditable(false);
         output.setEditable(false);
@@ -92,7 +103,6 @@ public class SocketClientExample {
 
         new Thread (() -> {while (running) {
             if (ois != null) {
-                System.out.println("Lol");
                 String message = "";
                 try {
                     message = (String) ois.readObject();
@@ -124,7 +134,7 @@ public class SocketClientExample {
     }
     
         
-    });
+    }).start();
 }
     // Use flush to send the message immediately without waiting for the buffer to fill up
     // oos.flush();
