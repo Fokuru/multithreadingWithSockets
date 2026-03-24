@@ -17,6 +17,7 @@ import java.util.*;
  */
 public class ChatServerWithThreads {
 
+    private static int CURRENT_CONNECTIONS = 0;
     public static final int LISTENING_PORT = 9876;
     private List<ConnectionHandler> connections = Collections.synchronizedList(new ArrayList<>());
 
@@ -36,8 +37,9 @@ public class ChatServerWithThreads {
                   // Accept next connection request and handle it.
                 connection = listener.accept();
                 System.out.println("Connection received from " + connection.getInetAddress());
-                ConnectionHandler handler = new ConnectionHandler(connection);
+                ConnectionHandler handler = new ConnectionHandler(connection, CURRENT_CONNECTIONS);
                 connections.add(handler);
+                CURRENT_CONNECTIONS++;
                 handler.start();
             }
         }
@@ -70,13 +72,15 @@ public class ChatServerWithThreads {
         Socket client;
         ObjectOutputStream oos;
         ObjectInputStream ois;
+        int number;
 
-        ConnectionHandler(Socket socket) {
+        ConnectionHandler(Socket socket, int newNum) {
             client = socket;
+            number = newNum;
         }
         
         public void run() {
-            String clientAddress = client.getInetAddress().toString();
+            String clientAddress = "User " + number + " ";
             try {
                 oos = new ObjectOutputStream(client.getOutputStream());
                 ois = new ObjectInputStream(client.getInputStream());
