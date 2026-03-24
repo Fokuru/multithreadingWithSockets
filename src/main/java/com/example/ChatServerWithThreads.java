@@ -26,6 +26,9 @@ public class ChatServerWithThreads {
         
         /* Accept and process connections forever, or until some error occurs. */
 
+        // pre: none
+        // post: the server is running, and is accepting and processing connection requests until some error occurs.  
+        // If an error occurs, a message is printed and the server is shut down.
         try {
             listener = new ServerSocket(LISTENING_PORT);
             System.out.println("Listening on port " + LISTENING_PORT);
@@ -46,6 +49,10 @@ public class ChatServerWithThreads {
 
     }
 
+    // pre: none
+    // post: a new ChatServerWithThreads object is created and the server is running, 
+    // accepting and processing connection requests until some error occurs.  
+    // If an error occurs, a message is printed and the server is shut down.
     public static void main(String[] args) {
         new ChatServerWithThreads();
         
@@ -57,6 +64,8 @@ public class ChatServerWithThreads {
      *  Defines a thread that handles the connection with one
      *  client.
      */
+    // pre: none
+    // post: the thread is running, and is handling the connection with one client.
     private class ConnectionHandler extends Thread {
         Socket client;
         ObjectOutputStream oos;

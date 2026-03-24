@@ -60,6 +60,10 @@ public class SocketClientExample {
         gui.setLayout(new FlowLayout());	
 
 
+        // pre: none
+        // post: the GUI is set up and visible, and a thread is running that listens
+        // for user input and sends it to the server, and another thread is running 
+        // that listens for messages from the server and displays them in the GUI.
         new Thread (() -> {input.addActionListener(new ActionListener(){
 
             @Override
@@ -102,7 +106,9 @@ public class SocketClientExample {
 
 
 
-
+        // pre: none
+        // post: a thread is running that listens for messages from the server and displays them in the GUI. 
+        // If the connection is closed, the thread stops and a message is printed.
         new Thread (() -> {while (running.get()) {
             if (ois != null) {
                 String message = "";
