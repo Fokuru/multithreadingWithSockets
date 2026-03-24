@@ -10,6 +10,7 @@ import java.io.ObjectOutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.swing.JFrame;
 import javax.swing.JTextField;
@@ -39,7 +40,7 @@ public class SocketClientExample {
         
       
         System.out.println("Sending request to Socket Server");
-        boolean running = true;
+        AtomicBoolean running = new AtomicBoolean(true);
 
         JFrame gui= new JFrame();
         gui.setSize(500, 500);
@@ -70,6 +71,7 @@ public class SocketClientExample {
 
                     String message = input.getText();
                     if (message.equalsIgnoreCase("exit")) {
+                        running.set(false);
                         oos.writeObject("exit");
                         if (ois != null) ois.close();
                         if (oos != null) oos.close();
@@ -101,20 +103,24 @@ public class SocketClientExample {
 
 
 
-        new Thread (() -> {while (running) {
+        new Thread (() -> {while (running.get()) {
             if (ois != null) {
                 String message = "";
                 try {
                     message = (String) ois.readObject();
                     output.setText(message);
+                    System.out.println("Someone said: " + message);
                 } catch (ClassNotFoundException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
                 } catch (IOException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
+                    if (e instanceof java.net.SocketException && "Socket closed".equals(e.getMessage())) {
+                        running.set(false);
+                        System.out.println("Connection closed.");
+                    } else {
+                        e.printStackTrace();
+                    }
                 }
-                System.out.println("Someone said: " + message);
             }
             
         
